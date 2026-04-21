@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shopsy/screens/categories.dart';
 import 'screens/Homepage.dart';
 
 void main() {
@@ -51,7 +52,7 @@ class _BottomState extends State<Bottom> {
   final List<Widget> screens = [
     Homepage(),
     Center(child: Text("Search")),
-    Center(child: Text("Categories")),
+    Categories(),
     Center(child: Text("Account")),
     Center(child: Text("Cart")),
   ];
