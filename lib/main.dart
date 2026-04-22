@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shopsy/screens/categories.dart';
+import 'package:shopsy/screens/Cartegories/categories.dart';
 import 'screens/Homepage.dart';
 
 void main() {
