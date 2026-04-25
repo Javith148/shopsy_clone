@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shopsy/screens/Cartegories/categories.dart';
+import 'package:shopsy/screens/splashscreen.dart';
 import 'screens/Homepage.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Shopsy_clone',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: Scaffold(body: Bottom()),
+      home: Scaffold(body:Splashscreen()),
     );
   }
 }

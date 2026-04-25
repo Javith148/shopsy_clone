@@ -54,6 +54,7 @@ flutter:
 
   assets:
     - assets/icon.jpg
+    - assets/shopsy_logo.jpg
     - assets/ja.jpeg
     - assets/accessories.png
     - assets/back_to_school.jpg
