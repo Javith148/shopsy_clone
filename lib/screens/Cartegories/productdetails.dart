@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:shopsy/screens/Cartegories/products.dart";
 import "package:shopsy/screens/Order_summary/order_summary.dart";
 
 class Productdetails extends StatefulWidget {
@@ -809,7 +810,7 @@ class _ProductdetailsState extends State<Productdetails> {
             Expanded(
               child:  GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderSummary()));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderSummary(product: widget.product)));
             },
             child: Container(
                 height: height * 0.05,
