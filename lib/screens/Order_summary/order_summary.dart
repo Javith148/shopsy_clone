@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shopsy/screens/Order_summary/add_addess.dart';
+import 'package:shopsy/screens/Order_summary/payment_page.dart';
+import "package:shopsy/provider/providerclass.dart";
+import 'package:provider/provider.dart';
 
 class OrderSummary extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -68,11 +71,21 @@ class _OrderSummaryState extends State<OrderSummary> {
 
     int oldPrice = int.tryParse(widget.product['oldPrice'].toString()) ?? 0;
     int discount = int.tryParse(widget.product['discount'].toString()) ?? 0;
-    int discountAmount = (oldPrice * discount) ~/ 100;
-    int dicountprice = oldPrice - discountAmount;
+    
+    // Price calculations with quantity
+    int totalOldPrice = oldPrice * selectedQty;
+    int discountAmount = ((oldPrice * discount) ~/ 100) * selectedQty;
+    int dicountprice = discountAmount;
+    int couponDiscount = 26 * selectedQty;
+    int finalprice = totalOldPrice - discountAmount - couponDiscount;
 
-    int finalprice = discountAmount - 26;
-   
+
+      final addresses = Provider.of<AddressProvider>(context).addresses;
+      
+      // Check if address is sufficient
+      bool isAddressSufficient = addresses.isNotEmpty &&
+          addresses.last.altPhone.isNotEmpty &&
+          addresses.last.landmark.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -105,7 +118,6 @@ class _OrderSummaryState extends State<OrderSummary> {
       Stack(
         children: [
 
-      Expanded(child: 
        SingleChildScrollView(
         child: Column(
           children: [
@@ -184,116 +196,165 @@ class _OrderSummaryState extends State<OrderSummary> {
               width: double.infinity,
               color: const Color.fromARGB(157, 134, 134, 134),
             ),
-            SizedBox(height: height * 0.02),
-            Container(
-      width: double.infinity,
-      
-      padding: EdgeInsets.all(width * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300), 
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
           
-          Text(
-            "Riyaz",
-            style: TextStyle(
-              fontSize: width * 0.045,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+       
+                    
 
-          SizedBox(height: width * 0.02),
+                       /// 🔹 ADDRESS SECTION
+                      addresses.isEmpty
+                          ?   GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      AddDeliveryAddess()),
+                                            );
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: width * 0.02),
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: Colors.deepPurple),
+                                            ),
+                                            child: Text("Change",
+                                                style: TextStyle(
+                                                    color:
+                                                        Colors.deepPurple)),
+                                          ),
+                                        )
+                            
+                          : Builder(
+                              builder: (context) {
+                                final addr = addresses.last;
+                                final index = addresses.length - 1;
+                                return Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.all(width * 0.04),
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.grey.shade300),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
 
-          
-          Text(
-            "Mathigiri hosur, mathigiri bus stand\nHOSUR - 635109",
-            style: TextStyle(
-              fontSize: width * 0.035,
-              color: Colors.black87,
-            ),
-          ),
+                                      /// NAME
+                                      Text(
+                                        addr.fullName,
+                                        style: TextStyle(
+                                          fontSize: width * 0.045,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
 
-          SizedBox(height: width * 0.02),
+                                      SizedBox(height: width * 0.02),
 
-          
-          Text(
-            "9677987432",
-            style: TextStyle(
-              fontSize: width * 0.038,
-            ),
-          ),
+                                      /// ADDRESS
+                                      Text(
+                                        "${addr.house}, ${addr.road}, ${addr.city}\n${addr.state} - ${addr.pincode}",
+                                        style: TextStyle(
+                                          fontSize: width * 0.035,
+                                        ),
+                                      ),
 
-          SizedBox(height: width * 0.03),
+                                      SizedBox(height: width * 0.02),
 
-         
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  "Address details insufficient to attempt delivery. Please add more details.",
-                  style: TextStyle(
-                    fontSize: width * 0.032,
-                    color: Colors.red,
-                     fontWeight: FontWeight.w600
-                  ),
-                ),
-              ),
+                                      /// PHONE
+                                      Text(
+                                        addr.phone,
+                                        style: TextStyle(
+                                          fontSize: width * 0.038,
+                                        ),
+                                      ),
 
-              SizedBox(width: width * 0.02),
+                                      SizedBox(height: width * 0.03),
 
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: width * 0.035,
-                  vertical: width * 0.015,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                ),
-                child: Text(
-                  "Edit details",
-                  style: TextStyle(
-                    fontSize: width * 0.032,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600
-                  ),
-                ),
-              ),
-            ],
-          ),
+                                      Row(
+                                        children: [
+                                          if (addr.altPhone.isEmpty || addr.landmark.isEmpty)
+                                            Expanded(
+                                              child: Text(
+                                                "Address details insufficient.",
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: width * 0.032,
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            const Spacer(),
 
-          SizedBox(height: width * 0.04),
+                                          /// EDIT
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => AddDeliveryAddess(
+                                                    initialAddress: addr,
+                                                    index: index,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: width * 0.03,
+                                                vertical: width * 0.015,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color:
+                                                        Colors.grey.shade400),
+                                              ),
+                                              child: Text("Edit",
+                                                  style: TextStyle(
+                                                      color: Colors.blue)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
 
-         GestureDetector(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>AddDeliveryAddess()));
-          },
-          child: 
-          Container(
-            width: double.infinity,
-            
-            padding: EdgeInsets.symmetric(vertical: width * 0.015),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.deepPurple),
-            ),
-            child: Text(
-              "Change",
-              style: TextStyle(
-                fontSize: width * 0.035,
-                color: Colors.deepPurple,
-                 fontWeight: FontWeight.w600
-              ),
-            ),
-          ),),
-        ],
-      ),
-    ),
-            Container(
+                                      SizedBox(height: width * 0.03),
+
+                                      /// CHANGE BUTTON
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    AddDeliveryAddess()),
+                                          );
+                                        },
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: width * 0.02),
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.deepPurple),
+                                          ),
+                                          child: Text("Change",
+                                              style: TextStyle(
+                                                  color:
+                                                      Colors.deepPurple)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                             Container(
               height: 5,
               width: double.infinity,
               color: const Color.fromARGB(157, 134, 134, 134),
@@ -309,7 +370,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🔥 LEFT SIDE (TEXT)
+                   
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,7 +399,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                               SizedBox(width: width * 0.01),
 
                               Text(
-                                "₹${widget.product['oldPrice']}",
+                                "₹${totalOldPrice}",
                                 style: TextStyle(
                                   fontSize: width * 0.032,
                                   decoration: TextDecoration.lineThrough,
@@ -517,7 +578,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "Price (1 item)",
+                          "Price ($selectedQty item${selectedQty > 1 ? 's' : ''})",
                           style: TextStyle(
                             fontSize: width * 0.037,
                             fontWeight: FontWeight.w400,
@@ -531,7 +592,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                         ),
                         Spacer(),
                         Text(
-                          "₹${widget.product['oldPrice']}",
+                          "₹${totalOldPrice}",
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -577,7 +638,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                         ),
                         Spacer(),
                         Text(
-                          "- ₹26",
+                          "- ₹$couponDiscount",
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.green,
@@ -654,7 +715,6 @@ class _OrderSummaryState extends State<OrderSummary> {
           ],
         ),
       ),
-      ),
       Positioned(
         bottom: 0,
         left: 0,
@@ -686,7 +746,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                        Text(
-                                "₹${widget.product['oldPrice'].toString()}",
+                                "₹${totalOldPrice}",
                                 style: TextStyle(
                                   fontSize: width * 0.032,
                                   color: const Color.fromARGB(255, 92, 92, 92),
@@ -714,17 +774,56 @@ class _OrderSummaryState extends State<OrderSummary> {
                       ],
                     ),
                     Spacer(),
-                    Container(
-                      height: height *0.045,
-                      width: width *0.4,
-                      color: Colors.grey[700],
-                      child: Center(
-                        child: Text("Continue",style: TextStyle(
-                        fontSize: width * 0.045,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),)
-                        ,),)
+                    GestureDetector(
+                      onTap: isAddressSufficient
+                          ? () {
+                              int oldPrice = int.tryParse(
+                                      widget.product['oldPrice'].toString()) ??
+                                  0;
+                              int discount = int.tryParse(
+                                      widget.product['discount'].toString()) ??
+                                  0;
+                              int totalOldPrice = oldPrice * selectedQty;
+                              int discountAmount =
+                                  ((oldPrice * discount) ~/ 100) * selectedQty;
+                              int couponDiscount = 26 * selectedQty;
+                              int finalprice = totalOldPrice - discountAmount - couponDiscount;
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentPage(
+                                    product: widget.product,
+                                    finalPrice: finalprice,
+                                    oldPrice: oldPrice,
+                                    discountAmount: discountAmount,
+                                    selectedQty: selectedQty,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                      child: Container(
+                        height: height * 0.045,
+                        width: width * 0.4,
+                        decoration: BoxDecoration(
+                          color: isAddressSufficient
+                              ? const Color(0xFF543CEA)
+                              : Colors.grey[700],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Continue",
+                            style: TextStyle(
+                              fontSize: width * 0.045,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
                   ],
                 )
                 ))

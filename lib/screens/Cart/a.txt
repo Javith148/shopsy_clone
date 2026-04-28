@@ -1,0 +1,200 @@
+  // Product Image
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    cartItem.product['image'],
+                                    width: width * 0.25,
+                                    height: width * 0.25,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(width: width * 0.04),
+                                // Product Details
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Product Title
+                                      Text(
+                                        cartItem.product['title'],
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: width * 0.035,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      SizedBox(height: height * 0.01),
+                                      // Product Category
+                                      Text(
+                                        "Black, On the Ear",
+                                        style: TextStyle(
+                                          fontSize: width * 0.03,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      SizedBox(height: height * 0.015),
+                                      // Price Info
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "${cartItem.product['discount']}% off",
+                                            style: TextStyle(
+                                              fontSize: width * 0.04,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                          SizedBox(width: width * 0.02),
+                                          Text(
+                                            "₹${cartItem.product['oldPrice']}",
+                                            style: TextStyle(
+                                              fontSize: width * 0.03,
+                                              decoration: TextDecoration
+                                                  .lineThrough,
+                                            ),
+                                          ),
+                                          SizedBox(width: width * 0.02),
+                                          Text(
+                                            "₹${cartItem.product['price']}",
+                                            style: TextStyle(
+                                              fontSize: width * 0.036,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: height * 0.015),
+                                      // Offers Info
+                                      Text(
+                                        "1 coupon applied • 5 offers available",
+                                        style: TextStyle(
+                                          fontSize: width * 0.028,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: height * 0.01),
+                                      // Delivery Info
+                                      Text(
+                                        "Delivery by Tue May 5",
+                                        style: TextStyle(
+                                          fontSize: width * 0.03,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Quantity and Actions
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width * 0.04,
+                              vertical: height * 0.01,
+                            ),
+                            child: Row(
+                              children: [
+                                // Quantity Selector
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (cartItem.quantity > 1) {
+                                            cartProvider.updateQuantity(
+                                              cartItem.product['id'],
+                                              cartItem.quantity - 1,
+                                            );
+                                          }
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: width * 0.03,
+                                              vertical: height * 0.008),
+                                          child: Text("-",
+                                              style: TextStyle(
+                                                  fontSize: width * 0.04)),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: height * 0.025,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: width * 0.04,
+                                            vertical: height * 0.008),
+                                        child: Text(
+                                          cartItem.quantity.toString(),
+                                          style: TextStyle(
+                                              fontSize: width * 0.035),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: height * 0.025,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          cartProvider.updateQuantity(
+                                            cartItem.product['id'],
+                                            cartItem.quantity + 1,
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: width * 0.03,
+                                              vertical: height * 0.008),
+                                          child: Text("+",
+                                              style: TextStyle(
+                                                  fontSize: width * 0.04)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Spacer(),
+                                // Move to Saved & Remove
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {},
+                                      child: Text(
+                                        "❤ Move to Saved Items",
+                                        style: TextStyle(
+                                          fontSize: width * 0.03,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: width * 0.03),
+                                    GestureDetector(
+                                      onTap: () {
+                                        cartProvider.removeFromCart(
+                                          cartItem.product['id'],
+                                        );
+                                      },
+                                      child: Text(
+                                        "🗑 Remove",
+                                        style: TextStyle(
+                                          fontSize: width * 0.03,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),

@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
-import "package:shopsy/screens/Cartegories/products.dart";
+import "package:provider/provider.dart";
 import "package:shopsy/screens/Order_summary/order_summary.dart";
+import "package:shopsy/screens/Cart/cart_page.dart";
+import "package:shopsy/provider/providerclass.dart";
 
 class Productdetails extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -122,12 +124,14 @@ class _ProductdetailsState extends State<Productdetails> {
 
     final details = widget.product['product_details'] as Map<String, dynamic>;
 
+
     final entriesList = details.entries.toList();
 
     final visibleItems = showAllDetails
         ? entriesList
         : entriesList.take(5).toList();
 
+      
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -142,7 +146,7 @@ class _ProductdetailsState extends State<Productdetails> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: width * 0.01),
+                      
 
                         SizedBox(height: width * 0.04),
                         Stack(
@@ -155,7 +159,7 @@ class _ProductdetailsState extends State<Productdetails> {
                             ),
                             Positioned(
                               right: width * 0.03,
-                              top: width * 0.03,
+                              top: width * 0.04,
                               child: Container(
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -167,7 +171,7 @@ class _ProductdetailsState extends State<Productdetails> {
                             ),
                             Positioned(
                               right: width * 0.03,
-                              top: width * 0.15,
+                              top: width * 0.25,
                               child: Container(
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -782,7 +786,22 @@ class _ProductdetailsState extends State<Productdetails> {
 
          
             Expanded(
-              child: Container(
+              child: GestureDetector(
+            onTap: () {
+              Provider.of<CartProvider>(context, listen: false)
+                  .addToCart(widget.product, quantity: 1);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Added to cart!"),
+                  duration: Duration(milliseconds: 800),
+                ),
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartPage()),
+              );
+            },
+            child: Container(
                 height: height * 0.05,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -802,7 +821,7 @@ class _ProductdetailsState extends State<Productdetails> {
                   ),
                 ),
               ),
-            ),
+            ),),
 
             SizedBox(width: width * 0.03),
 

@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:shopsy/provider/providerclass.dart';
+import 'package:shopsy/screens/Cart/cart_page.dart';
 import 'package:shopsy/screens/Cartegories/categories.dart';
 import 'package:shopsy/screens/splashscreen.dart';
 import 'screens/Homepage.dart';
+import 'package:provider/provider.dart';
+
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AddressProvider()..loadAddresses(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -55,7 +71,7 @@ class _BottomState extends State<Bottom> {
     Center(child: Text("Search")),
     Categories(),
     Center(child: Text("Account")),
-    Center(child: Text("Cart")),
+    CartPage()
   ];
 
   @override
