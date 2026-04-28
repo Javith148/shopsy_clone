@@ -1,5 +1,9 @@
 import "package:flutter/material.dart";
-import "package:shopsy/screens/Cartegories/productdetails.dart";
+import 'package:shopsy/screens/Cart/cart_page.dart';
+import "package:shopsy/screens/categories/productdetails.dart";
+import 'package:provider/provider.dart';
+import 'package:shopsy/provider/providerclass.dart';
+import 'package:shopsy/screens/Wishlist/wishlist_page.dart';
 
 class Products extends StatefulWidget {
   const Products({super.key});
@@ -61,8 +65,8 @@ class _ProductsState extends State<Products> {
       "brand": "Bata",
       "category": "Footwear",
 
-      "price": "129",
-      "oldPrice": "299",
+      "price": "429",
+      "oldPrice": "799",
       "discount": "60",
 
       "rating": "3.6",
@@ -774,9 +778,19 @@ class _ProductsState extends State<Products> {
                       ),
                     ),
                     SizedBox(width: width * 0.015),
-                    Icon(Icons.favorite_outline, size: height * 0.025),
+                    GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>WishlistPage()));
+                    },
+                    child:
+                    Icon(Icons.favorite_outline, size: height * 0.025),),
                     SizedBox(width: width * 0.015),
-                    Icon(Icons.shopping_cart_outlined, size: height * 0.025),
+                    GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>CartPage()));
+                    },
+                    child:
+                    Icon(Icons.shopping_cart_outlined, size: height * 0.025),),
                     SizedBox(width: width * 0.015),
                   ],
                 ),
@@ -890,20 +904,37 @@ class _ProductsState extends State<Products> {
                                   ),
                                 ),
 
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    padding: EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.favorite_border,
-                                      size: 16,
-                                    ),
-                                  ),
+                                Consumer<WishlistProvider>(
+                                  builder: (context, wishlistProvider, child) {
+                                    final isWishlisted = wishlistProvider.isWishlisted(item["id"]!);
+                                    return Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          wishlistProvider.toggleWishlist(item);
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black12,
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Icon(
+                                            isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                            size: 18,
+                                            color: isWishlisted ? Colors.red : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
 
                                 Positioned(

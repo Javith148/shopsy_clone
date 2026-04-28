@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import "package:shopsy/provider/providerclass.dart";
+import 'package:shopsy/screens/Order_summary/order_placed_splash.dart';
 
 class PaymentPage extends StatefulWidget {
-  final Map<String, dynamic> product;
-  final int finalPrice;
-  final int oldPrice;
-  final int discountAmount;
-  final int selectedQty;
+  final int totalAmount;
+  final int? oldPrice;
+  final int? discountAmount;
+  final int? couponDiscount;
 
   const PaymentPage({
     super.key,
-    required this.product,
-    required this.finalPrice,
-    required this.oldPrice,
-    required this.discountAmount,
-    required this.selectedQty,
+    required this.totalAmount,
+    this.oldPrice,
+    this.discountAmount,
+    this.couponDiscount,
   });
 
   @override
@@ -23,564 +20,378 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  String selectedPaymentMethod = 'cod'; // cod, upi, card
+  bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    final addresses = Provider.of<AddressProvider>(context).addresses;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header
-          Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: width * 0.04,
-              top: height * 0.04,
-              end: width * 0.03,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Icon(Icons.arrow_back),
-                ),
-                SizedBox(width: width * 0.03),
-                Text(
-                  "Payment",
-                  style: TextStyle(fontSize: height * 0.022),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                // Main Content
-                SingleChildScrollView(
-                  child: Column(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 🔹 Header
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: width * 0.04,
+                vertical: height * 0.015,
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(Icons.arrow_back),
+                  ),
+                  SizedBox(width: width * 0.03),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: height * 0.02),
+                      Text("Step 3 of 3",
+                          style: TextStyle(fontSize: width * 0.032)),
+                      Text(
+                        "Payments",
+                        style: TextStyle(
+                          fontSize: width * 0.045,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Spacer(),
+                  Row(
+                    children: [
+                      Icon(Icons.lock_outline, size: width * 0.04),
+                      SizedBox(width: 4),
+                      Text(
+                        "100% Secure",
+                        style: TextStyle(
+                          fontSize: width * 0.032,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
 
-                      // Step Indicator
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline,
-                            color: const Color(0xFF543CEA),
-                            size: height * 0.035,
-                          ),
-                          Container(
-                            height: 2,
-                            width: width * 0.25,
-                            color: const Color(0xFF543CEA),
-                          ),
-                          Icon(
-                            Icons.check_circle_outline,
-                            color: const Color(0xFF543CEA),
-                            size: height * 0.035,
-                          ),
-                          Container(
-                            height: 2,
-                            width: width * 0.25,
-                            color: const Color(0xFF543CEA),
-                          ),
-                          CircleAvatar(
-                            radius: 15,
-                            backgroundColor: const Color(0xFF543CEA),
-                            child: Text(
-                              "3",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+
+                    // 🔹 Total Amount Card with Dropdown Breakdown
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isExpanded = !isExpanded;
+                        });
+                      },
+                      child: Container(
+                        margin: EdgeInsets.all(width * 0.04),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: width * 0.04,
+                          vertical: height * 0.018,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F2F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      "Total Amount",
+                                      style: TextStyle(
+                                        fontSize: width * 0.04,
+                                        color: Colors.blueGrey,
+                                      ),
+                                    ),
+                                    Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                                  ],
+                                ),
+                                Text(
+                                  "₹${widget.totalAmount}",
+                                  style: TextStyle(
+                                    fontSize: width * 0.045,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            if (isExpanded) ...[
+                              SizedBox(height: 15),
+                              _priceBreakdownRow(width, "Price (items)", "₹${widget.oldPrice ?? widget.totalAmount}"),
+                              SizedBox(height: 8),
+                              _priceBreakdownRow(width, "Discount", "- ₹${widget.discountAmount ?? 0}", isDiscount: true),
+                              SizedBox(height: 8),
+                              _priceBreakdownRow(width, "Coupons", "- ₹${widget.couponDiscount ?? 0}", isDiscount: true),
+                              SizedBox(height: 8),
+                              const Divider(),
+                              SizedBox(height: 8),
+                              _priceBreakdownRow(width, "Total", "₹${widget.totalAmount}", isBold: true),
+                            ]
+                          ],
+                        ),
                       ),
+                    ),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    // 🔹 Offer Card
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
+                      padding: EdgeInsets.all(width * 0.04),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6F4EA),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
                         children: [
-                          Text("Customer"),
-                          Text(
-                            "\t Order summary \t",
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Text("Payment"),
-                        ],
-                      ),
-
-                      SizedBox(height: height * 0.02),
-
-                      Container(
-                        height: 3,
-                        width: double.infinity,
-                        color: const Color.fromARGB(157, 134, 134, 134),
-                      ),
-
-                      SizedBox(height: height * 0.02),
-
-                      // Delivery Address Section
-                      if (addresses.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: width * 0.04),
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(width * 0.04),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Deliver to:",
+                                  "5% instant discount",
                                   style: TextStyle(
-                                    fontSize: width * 0.035,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: width * 0.04,
+                                    color: Colors.green[800],
                                   ),
                                 ),
-                                SizedBox(height: width * 0.02),
+                                SizedBox(height: 4),
                                 Text(
-                                  addresses.last.fullName,
+                                  "Claim now with payment offers",
+                                  style: TextStyle(
+                                    color: Colors.green[700],
+                                    fontSize: width * 0.032,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.white,
+                                backgroundImage: NetworkImage("https://img.icons8.com/color/48/visa.png"),
+                              ),
+                              SizedBox(width: 6),
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.white,
+                                backgroundImage: NetworkImage("https://img.icons8.com/color/48/mastercard.png"),
+                              ),
+                              SizedBox(width: 6),
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.white,
+                                backgroundImage: NetworkImage("https://img.icons8.com/color/48/google-pay.png"),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.02),
+
+                    // 🔹 Cash on Delivery Section
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width * 0.04),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.currency_rupee),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Cash on Delivery",
                                   style: TextStyle(
                                     fontSize: width * 0.04,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                SizedBox(height: width * 0.01),
+                              ),
+                              Icon(Icons.keyboard_arrow_up),
+                            ],
+                          ),
+
+                          SizedBox(height: 10),
+
+                          Container(
+                            padding: EdgeInsets.all(width * 0.04),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              children: [
                                 Text(
-                                  "${addresses.last.house}, ${addresses.last.road}\n${addresses.last.city}, ${addresses.last.state} - ${addresses.last.pincode}",
+                                  "40,553 people used online payment options in the last hour.\nPay online now for safe and contactless delivery.",
                                   style: TextStyle(
-                                    fontSize: width * 0.034,
+                                    fontSize: width * 0.032,
                                     color: Colors.grey[700],
                                   ),
                                 ),
+                                SizedBox(height: 15),
+
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const OrderPlacedSplash()),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: height * 0.055,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Place Order",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: width * 0.04,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
                               ],
-                            ),
-                          ),
-                        ),
-
-                      SizedBox(height: height * 0.02),
-
-                      Container(
-                        height: 8,
-                        width: double.infinity,
-                        color: const Color.fromARGB(157, 182, 182, 182),
-                      ),
-
-                      // Price Summary
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: width * 0.04,
-                          vertical: height * 0.02,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Price Details",
-                              style: TextStyle(
-                                fontSize: width * 0.042,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: height * 0.015),
-                            _priceRow(width, "Price (${widget.selectedQty} item${widget.selectedQty > 1 ? 's' : ''})",
-                                "₹${widget.oldPrice * widget.selectedQty}"),
-                            SizedBox(height: height * 0.01),
-                            _priceRow(
-                              width,
-                              "Discount",
-                              "- ₹${widget.discountAmount * widget.selectedQty}",
-                              isDiscount: true,
-                            ),
-                            SizedBox(height: height * 0.01),
-                            _priceRow(
-                              width,
-                              "Coupon",
-                              "- ₹26",
-                              isDiscount: true,
-                            ),
-                            SizedBox(height: height * 0.015),
-                            Container(
-                              height: 0.8,
-                              width: double.infinity,
-                              color: Colors.grey[300],
-                            ),
-                            SizedBox(height: height * 0.015),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Total Amount",
-                                  style: TextStyle(
-                                    fontSize: width * 0.042,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  "₹${widget.finalPrice * widget.selectedQty}",
-                                  style: TextStyle(
-                                    fontSize: width * 0.05,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF543CEA),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: height * 0.01),
-                            Text(
-                              "You will save ₹${widget.discountAmount * widget.selectedQty}",
-                              style: TextStyle(
-                                fontSize: width * 0.036,
-                                color: Colors.green,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Container(
-                        height: 8,
-                        width: double.infinity,
-                        color: const Color.fromARGB(157, 182, 182, 182),
-                      ),
-
-                      // Payment Methods
-                      SizedBox(height: height * 0.01),
-
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: width * 0.04,
-                          vertical: height * 0.01,
-                        ),
-                        child: Text(
-                          "Select Payment Method",
-                          style: TextStyle(
-                            fontSize: width * 0.042,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-
-                      // Cash on Delivery
-                      _paymentMethodTile(
-                        width,
-                        height,
-                        icon: Icons.payments,
-                        title: "Cash on Delivery",
-                        subtitle: "Pay when you receive",
-                        value: 'cod',
-                      ),
-
-                      // UPI
-                      _paymentMethodTile(
-                        width,
-                        height,
-                        icon: Icons.qr_code_2,
-                        title: "UPI / BHIM",
-                        subtitle: "Google Pay, PhonePe, Paytm, etc.",
-                        value: 'upi',
-                      ),
-
-                      // Card
-                      _paymentMethodTile(
-                        width,
-                        height,
-                        icon: Icons.credit_card,
-                        title: "Credit / Debit Card",
-                        subtitle: "Visa, Mastercard, RuPay",
-                        value: 'card',
-                      ),
-
-                      Container(
-                        height: 8,
-                        width: double.infinity,
-                        color: const Color.fromARGB(157, 182, 182, 182),
-                      ),
-
-                      // Security Badge
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: width * 0.04,
-                          vertical: height * 0.02,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.lock_outline,
-                              color: const Color(0xFF543CEA),
-                              size: width * 0.05,
-                            ),
-                            SizedBox(width: width * 0.02),
-                            Text(
-                              "100% Secure Transaction",
-                              style: TextStyle(
-                                fontSize: width * 0.038,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF543CEA),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: height * 0.12),
-                    ],
-                  ),
-                ),
-
-                // Bottom Button
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 5,
-                          spreadRadius: 3,
-                          offset: Offset(0, -3),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: width * 0.04,
-                        vertical: width * 0.03,
-                      ),
-                      child: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Total",
-                                style: TextStyle(
-                                  fontSize: width * 0.032,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: height * 0.005),
-                              Text(
-                                "₹${widget.finalPrice * widget.selectedQty}",
-                                style: TextStyle(
-                                  fontSize: width * 0.048,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Spacer(),
-                          GestureDetector(
-                            onTap: () {
-                              _showPlaceOrderDialog(context, width, height);
-                            },
-                            child: Container(
-                              height: height * 0.05,
-                              width: width * 0.4,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF543CEA),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "Place Order",
-                                  style: TextStyle(
-                                    fontSize: width * 0.042,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+
+                    SizedBox(height: height * 0.02),
+
+                    // 🔹 UPI Section
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: width * 0.04),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black54),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text("UPI",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("UPI",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600)),
+                                Text("Pay by any UPI app",
+                                    style: TextStyle(color: Colors.grey)),
+                                Text(
+                                  "Save upto ₹19 • 15 offers available",
+                                  style: TextStyle(color: Colors.green),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.keyboard_arrow_down),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.02),
+
+                    // 🔹 All Other Options
+                    Container(
+                      margin: EdgeInsets.all(width * 0.04),
+                      padding: EdgeInsets.all(width * 0.04),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "All other payment options",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                "Gift Card, UPI, Cards & more",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          Icon(Icons.arrow_forward_ios, size: 16),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: height * 0.04),
+
+                    // 🔹 Bottom Text
+                    Column(
+                      children: [
+                        Text(
+                          "35 Crore happy customers and counting!",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        SizedBox(height: 10),
+                        Icon(Icons.sentiment_satisfied, color: Colors.grey),
+                      ],
+                    ),
+
+                    SizedBox(height: height * 0.05),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _priceRow(double width, String label, String value,
-      {bool isDiscount = false}) {
+  Widget _priceBreakdownRow(double width, String label, String value, {bool isDiscount = false, bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: width * 0.036,
+            fontSize: width * 0.035,
             color: Colors.grey[700],
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: width * 0.036,
-            fontWeight: FontWeight.w500,
-            color: isDiscount ? Colors.green : Colors.black,
+            fontSize: width * 0.035,
+            color: isDiscount ? Colors.green : (isBold ? Colors.black : Colors.grey[800]),
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ],
     );
-  }
-
-  Widget _paymentMethodTile(
-    double width,
-    double height, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String value,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: width * 0.04,
-        vertical: height * 0.008,
-      ),
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedPaymentMethod = value;
-          });
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.04,
-            vertical: height * 0.015,
-          ),
-          decoration: BoxDecoration(
-            color: selectedPaymentMethod == value
-                ? Colors.blue.shade50
-                : Colors.white,
-            border: Border.all(
-              color: selectedPaymentMethod == value
-                  ? const Color(0xFF543CEA)
-                  : Colors.grey.shade300,
-              width: selectedPaymentMethod == value ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: const Color(0xFF543CEA),
-                size: width * 0.06,
-              ),
-              SizedBox(width: width * 0.03),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: width * 0.038,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: width * 0.032,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Radio<String>(
-                value: value,
-                groupValue: selectedPaymentMethod,
-                activeColor: const Color(0xFF543CEA),
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedPaymentMethod = newValue!;
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPlaceOrderDialog(BuildContext context, double width, double height) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Confirm Order"),
-        content: Text(
-          "Proceed with ${_getPaymentMethodName(selectedPaymentMethod)}?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Cancel",
-              style: TextStyle(color: Colors.grey),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Order placed successfully!"),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: Text(
-              "Place Order",
-              style: TextStyle(color: const Color(0xFF543CEA)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getPaymentMethodName(String method) {
-    switch (method) {
-      case 'cod':
-        return 'Cash on Delivery';
-      case 'upi':
-        return 'UPI Payment';
-      case 'card':
-        return 'Card Payment';
-      default:
-        return 'Payment';
-    }
   }
 }

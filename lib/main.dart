@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shopsy/provider/providerclass.dart';
 import 'package:shopsy/screens/Cart/cart_page.dart';
-import 'package:shopsy/screens/Cartegories/categories.dart';
+import 'package:shopsy/screens/categories/categories.dart';
 import 'package:shopsy/screens/splashscreen.dart';
+import 'package:shopsy/screens/Wishlist/wishlist_page.dart';
 import 'screens/Homepage.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WishlistProvider(),
         ),
       ],
       child: MyApp(),
@@ -70,7 +74,7 @@ class _BottomState extends State<Bottom> {
     Homepage(),
     Center(child: Text("Search")),
     Categories(),
-    Center(child: Text("Account")),
+    WishlistPage(),
     CartPage()
   ];
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shopsy/main.dart';
 import 'package:shopsy/provider/providerclass.dart';
 import 'package:shopsy/screens/Order_summary/add_addess.dart';
 import 'package:shopsy/screens/Order_summary/order_summary.dart';
@@ -23,25 +24,76 @@ class _CartPageState extends State<CartPage> {
         builder: (context, cartProvider, addressProvider, child) {
           final cartItems = cartProvider.cartItems;
 
-          if (cartItems.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 80,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: height * 0.02),
-                  Text(
-                    "Your cart is empty",
-                    style: TextStyle(fontSize: width * 0.05),
-                  ),
-                ],
+         if (cartItems.isEmpty) {
+  return Center(
+    child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: width * 0.08),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.remove_shopping_cart_outlined,
+            size: width * 0.22,
+            color: Colors.grey.shade400,
+          ),
+
+          SizedBox(height: height * 0.03),
+
+          Text(
+            "Your cart is empty",
+            style: TextStyle(
+              fontSize: width * 0.055,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          SizedBox(height: height * 0.01),
+
+          Text(
+            "Looks like you haven’t added anything yet",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: width * 0.035,
+              color: Colors.grey,
+            ),
+          ),
+
+          SizedBox(height: height * 0.04),
+
+         
+          GestureDetector(
+            onTap: () {
+             
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => Bottom()),
+                (route) => false,
+              );
+            },
+            child: Container(
+              height: height * 0.055,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFF543CEA), // your theme color
+                borderRadius: BorderRadius.circular(8),
               ),
-            );
-          }
+              child: Center(
+                child: Text(
+                  "Shop Now",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: width * 0.042,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
           int totalOldPrice = 0;
           int totalDiscount = 0;
@@ -49,12 +101,10 @@ class _CartPageState extends State<CartPage> {
           int totalFinalPrice = 0;
 
           for (var item in cartItems) {
-            int oldPrice = int.tryParse(
-                    item.product['oldPrice'].toString()) ??
-                0;
-            int discount = int.tryParse(
-                    item.product['discount'].toString()) ??
-                0;
+            int oldPrice =
+                int.tryParse(item.product['oldPrice'].toString()) ?? 0;
+            int discount =
+                int.tryParse(item.product['discount'].toString()) ?? 0;
             int quantity = item.quantity;
 
             int itemOldPrice = oldPrice * quantity;
@@ -66,18 +116,14 @@ class _CartPageState extends State<CartPage> {
           }
           totalFinalPrice -= totalCoupon;
 
-          return Stack(
+          return 
+          Column(
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                
-                    Padding(
+Padding(
                       padding: EdgeInsetsGeometry.directional(
-                        start: width *0.04,
-                        top: width *0.1,
-                        bottom: width *0.02
-                      
+                        start: width * 0.04,
+                        top: width * 0.1,
+                        bottom: width * 0.02,
                       ),
                       child: Row(
                         children: [
@@ -97,10 +143,15 @@ class _CartPageState extends State<CartPage> {
                       ),
                     ),
 
-                    Container(
-                      height: 1,
-                      color: Colors.grey.shade300,
-                    ),
+          
+          Expanded(child: 
+          Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    
+                    Container(height: 1, color: Colors.grey.shade300),
 
                     // Delivery Address
                     if (addressProvider.addresses.isNotEmpty)
@@ -135,7 +186,12 @@ class _CartPageState extends State<CartPage> {
                             Spacer(),
                             GestureDetector(
                               onTap: () {
-                               Navigator.push(context, MaterialPageRoute(builder: (context)=>AddDeliveryAddess()));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddDeliveryAddess(),
+                                  ),
+                                );
                               },
                               child: Text(
                                 "Change",
@@ -150,239 +206,229 @@ class _CartPageState extends State<CartPage> {
                         ),
                       ),
 
-                    Container(
-                      height: 8,
-                      color: Colors.grey.shade200,
-                    ),
+                    Container(height: 8, color: Colors.grey.shade200),
 
-                    // Cart Items
+                    /// CART ITEMS
                     ...cartItems.map((cartItem) {
-                      int oldPrice = int.tryParse(
-                              cartItem.product['oldPrice'].toString()) ??
-                          0;
-                      int discount = int.tryParse(
-                              cartItem.product['discount'].toString()) ??
-                          0;
-                      int discountAmount =
-                          ((oldPrice * discount) ~/ 100) *
-                              cartItem.quantity;
-                      int itemTotal = (oldPrice * cartItem.quantity) -
-                          discountAmount -
-                          (26 * cartItem.quantity);
-
                       return Column(
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(width * 0.04),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width * 0.04,
+                              vertical: height * 0.015,
+                            ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                               
-                                SizedBox(width: width * 0.02),
-                                // Product Details
+                                /// LEFT → TEXT
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      // Product Title
                                       Text(
                                         cartItem.product['title'],
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: width * 0.035,
+                                          fontSize: width * 0.04,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
+
                                       SizedBox(height: height * 0.01),
-                                      
-                                     
-                                      // Price Info
+
                                       Row(
                                         children: [
                                           Text(
                                             "${cartItem.product['discount']}% off",
                                             style: TextStyle(
-                                              fontSize: width * 0.04,
-                                              fontWeight: FontWeight.w700,
                                               color: Colors.green,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                           SizedBox(width: width * 0.02),
+
                                           Text(
                                             "₹${cartItem.product['oldPrice']}",
                                             style: TextStyle(
-                                              fontSize: width * 0.03,
-                                              decoration: TextDecoration
-                                                  .lineThrough,
+                                              decoration:
+                                                  TextDecoration.lineThrough,
                                             ),
                                           ),
+
                                           SizedBox(width: width * 0.02),
+
                                           Text(
                                             "₹${cartItem.product['price']}",
                                             style: TextStyle(
-                                              fontSize: width * 0.036,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: height * 0.015),
-                                      // Offers Info
+
+                                      SizedBox(height: height * 0.01),
+
                                       Text(
                                         "1 coupon applied • 5 offers available",
-                                        style: TextStyle(
-                                          fontSize: width * 0.028,
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: TextStyle(color: Colors.green),
                                       ),
+
                                       SizedBox(height: height * 0.01),
-                                      // Delivery Info
+
                                       Text(
                                         "Delivery by Tue May 5",
-                                        style: TextStyle(
-                                          fontSize: width * 0.03,
-                                          color: Colors.grey[600],
-                                        ),
+                                        style: TextStyle(color: Colors.grey),
                                       ),
+
+                                      SizedBox(height: height * 0.015),
+
+                                      /// ACTIONS
+                                      
                                     ],
                                   ),
                                 ),
-                                 // Product Image
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    cartItem.product['image'],
-                                    width: width * 0.25,
-                                    height: width * 0.25,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Quantity and Actions
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: width * 0.04,
-                              vertical: height * 0.01,
-                            ),
-                            child: Row(
-                              children: [
-                                // Quantity Selector
-                                Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (cartItem.quantity > 1) {
-                                            cartProvider.updateQuantity(
-                                              cartItem.product['id'],
-                                              cartItem.quantity - 1,
-                                            );
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: width * 0.03,
-                                              vertical: height * 0.008),
-                                          child: Text("-",
-                                              style: TextStyle(
-                                                  fontSize: width * 0.04)),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        height: height * 0.025,
-                                        color: Colors.grey.shade300,
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: width * 0.04,
-                                            vertical: height * 0.008),
-                                        child: Text(
-                                          cartItem.quantity.toString(),
-                                          style: TextStyle(
-                                              fontSize: width * 0.035),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        height: height * 0.025,
-                                        color: Colors.grey.shade300,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          cartProvider.updateQuantity(
-                                            cartItem.product['id'],
-                                            cartItem.quantity + 1,
-                                          );
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: width * 0.03,
-                                              vertical: height * 0.008),
-                                          child: Text("+",
-                                              style: TextStyle(
-                                                  fontSize: width * 0.04)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Spacer(),
-                                // Move to Saved & Remove
-                                Row(
+
+                                SizedBox(width: width * 0.03),
+
+                                /// RIGHT → IMAGE + QTY
+                                Column(
                                   children: [
-                                    GestureDetector(
-                                      onTap: () {},
-                                      child: Text(
-                                        "❤ Move to Saved Items",
-                                        style: TextStyle(
-                                          fontSize: width * 0.03,
-                                          color: Colors.grey[600],
-                                        ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.asset(
+                                        cartItem.product['image'],
+                                        width: width * 0.25,
+                                        height: width * 0.25,
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                    SizedBox(width: width * 0.03),
-                                    GestureDetector(
-                                      onTap: () {
-                                        cartProvider.removeFromCart(
-                                          cartItem.product['id'],
-                                        );
-                                      },
-                                      child: Text(
-                                        "🗑 Remove",
-                                        style: TextStyle(
-                                          fontSize: width * 0.03,
-                                          color: Colors.grey[600],
+
+                                    SizedBox(height: height * 0.01),
+
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
                                         ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              if (cartItem.quantity > 1) {
+                                                cartProvider.updateQuantity(
+                                                  cartItem.product['id'],
+                                                  cartItem.quantity - 1,
+                                                );
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: width * 0.03,
+                                                vertical: height * 0.008,
+                                              ),
+                                              child: Text(
+                                                "-",
+                                                style: TextStyle(
+                                                  fontSize: width * 0.04,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 1,
+                                            height: height * 0.025,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: width * 0.04,
+                                              vertical: height * 0.008,
+                                            ),
+                                            child: Text(
+                                              cartItem.quantity.toString(),
+                                              style: TextStyle(
+                                                fontSize: width * 0.035,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 1,
+                                            height: height * 0.025,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              cartProvider.updateQuantity(
+                                                cartItem.product['id'],
+                                                cartItem.quantity + 1,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: width * 0.03,
+                                                vertical: height * 0.008,
+                                              ),
+                                              child: Text(
+                                                "+",
+                                                style: TextStyle(
+                                                  fontSize: width * 0.04,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
+                                    
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                          Container(
-                            height: 1,
-                            color: Colors.grey.shade300,
-                          ),
+                          Padding(padding: EdgeInsetsGeometry.symmetric(
+                            horizontal: width *0.07,
+                            vertical: height *0.03
+                          ),child: 
+                          Row(
+                         
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {},
+                                            child:Row(
+                                              children: [  Icon(Icons.favorite_border_outlined,size: height*0.02,),SizedBox(width: width*0.01,), Text("Moved to Saved items")],
+                                            )
+                                            
+                                           
+                                          ),
+                                          Spacer(),
+                                          GestureDetector(
+                                            onTap: () {
+                                              cartProvider.removeFromCart(
+                                                cartItem.product['id'],
+                                              );
+                                            },
+                                            child:Row(
+                                              children: [  Icon(Icons.delete,color: Colors.grey,size: height*0.02,),SizedBox(width: width*0.01,), Text("Remove")],
+                                            )
+
+                                           
+                                          ),
+                                          SizedBox(width: width*0.15,)
+                                         
+                                         
+                                        ],
+                                      ),),
+
+                          /// DIVIDER
+                          Container(height: 1, color: Colors.grey.shade300),
                         ],
                       );
                     }).toList(),
-
-                    Container(
-                      height: 8,
-                      color: Colors.grey.shade200,
-                    ),
+                    Container(height: 8, color: Colors.grey.shade200),
 
                     // Price Details
                     Padding(
@@ -418,14 +464,10 @@ class _CartPageState extends State<CartPage> {
                             isDiscount: true,
                           ),
                           SizedBox(height: height * 0.015),
-                          Container(
-                            height: 1,
-                            color: Colors.grey.shade300,
-                          ),
+                          Container(height: 1, color: Colors.grey.shade300),
                           SizedBox(height: height * 0.015),
                           Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Total Customer Price",
@@ -445,10 +487,7 @@ class _CartPageState extends State<CartPage> {
                             ],
                           ),
                           SizedBox(height: height * 0.01),
-                          Container(
-                            height: 1,
-                            color: Colors.grey.shade300,
-                          ),
+                          Container(height: 1, color: Colors.grey.shade300),
                           SizedBox(height: height * 0.01),
                           Text(
                             "You will save ₹$totalDiscount on this order",
@@ -463,35 +502,34 @@ class _CartPageState extends State<CartPage> {
                     ),
 
                     // Security Info
-                    Padding(
-                      padding: EdgeInsets.all(width * 0.04),
-                      child: Container(
-                        padding: EdgeInsets.all(width * 0.03),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.verified_user,
-                              color: Colors.green,
-                              size: width * 0.05,
-                            ),
-                            SizedBox(width: width * 0.03),
-                            Expanded(
-                              child: Text(
-                                "Safe and secure payments. Easy returns.\n100% Authentic products.",
-                                style: TextStyle(
-                                  fontSize: width * 0.03,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+          Row(
+      
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(width: width*0.15,),
+
+        Icon(
+          Icons.verified_user,
+          color: Colors.blueGrey,
+          size: width * 0.05,
+        ),
+
+        SizedBox(width: width * 0.03),
+
+        /// TEXT
+        Expanded(
+          child: Text(
+            "Safe and secure payments. Easy returns.\n100% Authentic products.",
+            style: TextStyle(
+              fontSize: width * 0.03,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+      ],
+    ),
+  
+
 
                     SizedBox(height: height * 0.15),
                   ],
@@ -506,7 +544,7 @@ class _CartPageState extends State<CartPage> {
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
                     horizontal: width * 0.04,
-                    vertical: height * 0.02,
+                    vertical: height * 0.01,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -531,14 +569,20 @@ class _CartPageState extends State<CartPage> {
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
+                          Row(
+                            children: [
+                              
                           Text(
-                            "₹$totalFinalPrice",
+                            "₹$totalFinalPrice ",
                             style: TextStyle(
                               fontSize: width * 0.05,
                               fontWeight: FontWeight.w800,
                               color: Colors.black,
                             ),
                           ),
+                          Icon(Icons.info_outline,color: Colors.grey,size: height*0.02,)
+                            ],
+                          )
                         ],
                       ),
                       Spacer(),
@@ -550,7 +594,7 @@ class _CartPageState extends State<CartPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => OrderSummary(
-                                  product: cartItems.first.product,
+                                  isFromCart: true,
                                 ),
                               ),
                             );
@@ -559,7 +603,7 @@ class _CartPageState extends State<CartPage> {
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: width * 0.08,
-                            vertical: height * 0.015,
+                            vertical: height * 0.012,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF543CEA),
@@ -568,7 +612,7 @@ class _CartPageState extends State<CartPage> {
                           child: Text(
                             "Continue",
                             style: TextStyle(
-                              fontSize: width * 0.04,
+                              fontSize: width * 0.03,
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                             ),
@@ -580,23 +624,24 @@ class _CartPageState extends State<CartPage> {
                 ),
               ),
             ],
-          );
+           ) )]);
         },
       ),
     );
   }
 
-  Widget _priceRow(double width, String label, String value,
-      {bool isDiscount = false}) {
+  Widget _priceRow(
+    double width,
+    String label,
+    String value, {
+    bool isDiscount = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: width * 0.036,
-            color: Colors.grey[700],
-          ),
+          style: TextStyle(fontSize: width * 0.036, color: Colors.grey[700]),
         ),
         Text(
           value,

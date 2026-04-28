@@ -3,6 +3,7 @@ import "package:provider/provider.dart";
 import "package:shopsy/screens/Order_summary/order_summary.dart";
 import "package:shopsy/screens/Cart/cart_page.dart";
 import "package:shopsy/provider/providerclass.dart";
+import "package:shopsy/screens/Wishlist/wishlist_page.dart";
 
 class Productdetails extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -148,7 +149,7 @@ class _ProductdetailsState extends State<Productdetails> {
                       children: [
                       
 
-                        SizedBox(height: width * 0.05),
+                        SizedBox(height: width * 0.1),
                         Stack(
                           children: [
                             Image.asset(
@@ -157,21 +158,40 @@ class _ProductdetailsState extends State<Productdetails> {
                               height: 450,
                               fit: BoxFit.contain,
                             ),
-                            Positioned(
-                              right: width * 0.03,
-                              top: width * 0.1,
-                              child: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.favorite_outline),
-                              ),
+                            Consumer<WishlistProvider>(
+                              builder: (context, wishlistProvider, child) {
+                                final isWishlisted = wishlistProvider.isWishlisted(widget.product["id"]!);
+                                return Positioned(
+                                  right: width * 0.03,
+                                  top: width * 0.1,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      wishlistProvider.toggleWishlist(widget.product);
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 4,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        isWishlisted ? Icons.favorite : Icons.favorite_outline,
+                                        color: isWishlisted ? Colors.red : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             Positioned(
                               right: width * 0.03,
-                              top: width * 0.5,
+                              top: width * 0.25,
                               child: Container(
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -756,7 +776,12 @@ class _ProductdetailsState extends State<Productdetails> {
                     ),
                   ),
                   SizedBox(width: width * 0.015),
-                  Icon(Icons.favorite_outline, size: height * 0.025),
+                   GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>WishlistPage()));
+                    },
+                    child:
+                  Icon(Icons.favorite_outline, size: height * 0.025),),
                   SizedBox(width: width * 0.015),
                   GestureDetector(
                     onTap: (){

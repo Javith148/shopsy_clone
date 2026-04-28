@@ -5,8 +5,9 @@ import "package:shopsy/provider/providerclass.dart";
 import 'package:provider/provider.dart';
 
 class OrderSummary extends StatefulWidget {
-  final Map<String, dynamic> product;
-  const OrderSummary({super.key, required this.product});
+  final Map<String, dynamic>? product;
+  final bool isFromCart;
+  const OrderSummary({super.key, this.product, this.isFromCart = false});
 
   @override
   State<OrderSummary> createState() => _OrderSummaryState();
@@ -65,27 +66,49 @@ class _OrderSummaryState extends State<OrderSummary> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    final cartProvider = Provider.of<CartProvider>(context);
 
-    int stock = int.tryParse(widget.product['stock'].toString()) ?? 1;
-    if (stock < 1) stock = 1;
+    List<Map<String, dynamic>> summaryItems = [];
+    int totalOldPrice = 0;
+    int totalDiscountAmount = 0;
+    int totalCouponDiscount = 0;
+    int totalFinalPrice = 0;
 
-    int oldPrice = int.tryParse(widget.product['oldPrice'].toString()) ?? 0;
-    int discount = int.tryParse(widget.product['discount'].toString()) ?? 0;
-    
-    // Price calculations with quantity
-    int totalOldPrice = oldPrice * selectedQty;
-    int discountAmount = ((oldPrice * discount) ~/ 100) * selectedQty;
-    int dicountprice = discountAmount;
-    int couponDiscount = 26 * selectedQty;
-    int finalprice = totalOldPrice - discountAmount - couponDiscount;
-
-
-      final addresses = Provider.of<AddressProvider>(context).addresses;
+    if (widget.isFromCart) {
+      for (var item in cartProvider.cartItems) {
+        summaryItems.add({
+          ...item.product,
+          'selectedQty': item.quantity,
+        });
+        int op = int.tryParse(item.product['oldPrice'].toString()) ?? 0;
+        int d = int.tryParse(item.product['discount'].toString()) ?? 0;
+        int qty = item.quantity;
+        
+        totalOldPrice += op * qty;
+        totalDiscountAmount += ((op * d) ~/ 100) * qty;
+        totalCouponDiscount += 26 * qty;
+      }
+    } else if (widget.product != null) {
+      summaryItems.add({
+        ...widget.product!,
+        'selectedQty': selectedQty,
+      });
+      int op = int.tryParse(widget.product!['oldPrice'].toString()) ?? 0;
+      int d = int.tryParse(widget.product!['discount'].toString()) ?? 0;
       
-      // Check if address is sufficient
-      bool isAddressSufficient = addresses.isNotEmpty &&
-          addresses.last.altPhone.isNotEmpty &&
-          addresses.last.landmark.isNotEmpty;
+      totalOldPrice = op * selectedQty;
+      totalDiscountAmount = ((op * d) ~/ 100) * selectedQty;
+      totalCouponDiscount = 26 * selectedQty;
+    }
+
+    totalFinalPrice = totalOldPrice - totalDiscountAmount - totalCouponDiscount;
+
+    final addresses = Provider.of<AddressProvider>(context).addresses;
+    
+    // Check if address is sufficient
+    bool isAddressSufficient = addresses.isNotEmpty &&
+        addresses.last.altPhone.isNotEmpty &&
+        addresses.last.landmark.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -359,138 +382,160 @@ class _OrderSummaryState extends State<OrderSummary> {
               width: double.infinity,
               color: const Color.fromARGB(157, 134, 134, 134),
             ),
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                start: height * 0.02,
-                top: height * 0.01,
-                end: height * 0.02,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            // Items List
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: summaryItems.length,
+              itemBuilder: (context, index) {
+                final item = summaryItems[index];
+                int itemQty = item['selectedQty'] ?? 1;
+                int itemOldPrice = int.tryParse(item['oldPrice'].toString()) ?? 0;
+                
+                return Column(
                   children: [
-                   
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.product['title'],
-                            style: TextStyle(
-                              fontSize: width * 0.05,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-
-                          SizedBox(height: height * 0.05),
-
-                          Row(
-                            children: [
-                              Text(
-                                "${widget.product['discount']}% off",
-                                style: TextStyle(
-                                  fontSize: width * 0.05,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.green,
-                                ),
+                    Padding(
+                      padding: EdgeInsetsDirectional.only(
+                        start: height * 0.02,
+                        top: height * 0.01,
+                        end: height * 0.02,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item['title'],
+                                    style: TextStyle(
+                                      fontSize: width * 0.05,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  SizedBox(height: height * 0.02),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "${item['discount']}% off",
+                                        style: TextStyle(
+                                          fontSize: width * 0.05,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      SizedBox(width: width * 0.01),
+                                      Text(
+                                        "₹${itemOldPrice * itemQty}",
+                                        style: TextStyle(
+                                          fontSize: width * 0.032,
+                                          decoration: TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                      SizedBox(width: width * 0.01),
+                                      Text(
+                                        "₹${item['price']}",
+                                        style: TextStyle(
+                                          fontSize: width * 0.04,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    "1 coupon applied • 6 offers available",
+                                    style: TextStyle(
+                                      fontSize: width * 0.03,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  SizedBox(height: height * 0.01),
+                                  Text(
+                                    "Delivery by ${calculateDeliveryDate(item['deliveryTime'] ?? "2-4 days")}",
+                                    style: TextStyle(
+                                      fontSize: width * 0.03,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color.fromARGB(255, 105, 105, 105),
+                                    ),
+                                  ),
+                                ],
                               ),
-
-                              SizedBox(width: width * 0.01),
-
-                              Text(
-                                "₹${totalOldPrice}",
-                                style: TextStyle(
-                                  fontSize: width * 0.032,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-
-                              SizedBox(width: width * 0.01),
-
-                              Text(
-                                "₹${widget.product['price']}",
-                                style: TextStyle(
-                                  fontSize: width * 0.04,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "1 coupan applied • 6 offer available",
-                            style: TextStyle(
-                              fontSize: width * 0.03,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w700,
                             ),
-                          ),
-                          SizedBox(height: height * 0.01),
-                          Text(
-                            "Delivery by ${calculateDeliveryDate(widget.product['deliveryTime'] ?? "2-4 days")}",
-                            style: TextStyle(
-                              fontSize: width * 0.03,
-                              fontWeight: FontWeight.w500,
-                              color: const Color.fromARGB(255, 105, 105, 105),
+                            SizedBox(width: width * 0.03),
+                            Column(
+                              children: [
+                                Image.asset(
+                                  item['image'],
+                                  height: height * 0.1,
+                                ),
+                                SizedBox(height: height * 0.01),
+                                if (!widget.isFromCart)
+                                  Container(
+                                    height: width * 0.08,
+                                    width: width * 0.22,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: width * 0.03,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey.shade400),
+                                      borderRadius: BorderRadius.circular(width * 0.02),
+                                      color: Colors.white,
+                                    ),
+                                    child: DropdownButton<int>(
+                                      dropdownColor: Colors.white,
+                                      value: selectedQty,
+                                      isExpanded: true,
+                                      underline: const SizedBox(),
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: width * 0.06,
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedQty = value!;
+                                        });
+                                      },
+                                      items: List.generate(
+                                          int.tryParse(item['stock'].toString()) ?? 10,
+                                          (i) {
+                                        int q = i + 1;
+                                        return DropdownMenuItem<int>(
+                                          value: q,
+                                          child: Text(
+                                            "Qty: $q",
+                                            style: TextStyle(fontSize: width * 0.03),
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  )
+                                else
+                                  Text(
+                                    "Qty: $itemQty",
+                                    style: TextStyle(
+                                      fontSize: width * 0.035,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                              ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-
-                    SizedBox(width: width * 0.03),
-
-                    Column(
-                      children: [
-                        Image.asset(
-                          widget.product['image'],
-                          height: height * 0.1,
-                        ),
-
-                        SizedBox(height: height * 0.01),
-
-                        Container(
-                          height: width * 0.08,
-                          width: width * 0.22,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.03,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(width * 0.02),
-                            color: Colors.white,
-                          ),
-                          child: DropdownButton<int>(
-                            dropdownColor: Colors.white,
-                            value: selectedQty,
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            icon: Icon(
-                              Icons.keyboard_arrow_down,
-                              size: width * 0.06,
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedQty = value!;
-                              });
-                            },
-                            items: List.generate(stock, (index) {
-                              int qty = index + 1;
-                              return DropdownMenuItem<int>(
-                                value: qty,
-                                child: Text(
-                                  "Qty: $qty",
-                                  style: TextStyle(fontSize: width * 0.03),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: height * 0.02),
+                    Container(
+                      height: 1,
+                      width: double.infinity,
+                      color: Colors.grey.shade300,
                     ),
                   ],
-                ),
-              ),
+                );
+              },
             ),
             SizedBox(height: height * 0.02),
             Container(
@@ -578,7 +623,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "Price ($selectedQty item${selectedQty > 1 ? 's' : ''})",
+                          "Price (${summaryItems.length} item${summaryItems.length > 1 ? 's' : ''})",
                           style: TextStyle(
                             fontSize: width * 0.037,
                             fontWeight: FontWeight.w400,
@@ -592,7 +637,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                         ),
                         Spacer(),
                         Text(
-                          "₹${totalOldPrice}",
+                          "₹$totalOldPrice",
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -608,10 +653,9 @@ class _OrderSummaryState extends State<OrderSummary> {
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-
                         Spacer(),
                         Text(
-                          "- ₹$dicountprice",
+                          "- ₹$totalDiscountAmount",
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.green,
@@ -638,7 +682,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                         ),
                         Spacer(),
                         Text(
-                          "- ₹$couponDiscount",
+                          "- ₹$totalCouponDiscount",
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.green,
@@ -663,10 +707,9 @@ class _OrderSummaryState extends State<OrderSummary> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-
                         Spacer(),
                         Text(
-                          "₹$finalprice",
+                          "₹$totalFinalPrice",
                           style: TextStyle(
                             fontSize: width * 0.045,
                             fontWeight: FontWeight.w700,
@@ -683,7 +726,7 @@ class _OrderSummaryState extends State<OrderSummary> {
                     ),
                     SizedBox(height: height * 0.01),
                     Text(
-                      "You Will  save ₹$discountAmount on this order",
+                      "You Will save ₹$totalDiscountAmount on this order",
                       style: TextStyle(
                         fontSize: width * 0.038,
                         fontWeight: FontWeight.w800,
@@ -745,59 +788,44 @@ class _OrderSummaryState extends State<OrderSummary> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                       Text(
-                                "₹${totalOldPrice}",
-                                style: TextStyle(
-                                  fontSize: width * 0.032,
-                                  color: const Color.fromARGB(255, 92, 92, 92),
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                                Text(
-                          "₹$finalprice",
+                        Text(
+                          "₹$totalOldPrice",
+                          style: TextStyle(
+                            fontSize: width * 0.032,
+                            color: const Color.fromARGB(255, 92, 92, 92),
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        Text(
+                          "₹$totalFinalPrice",
                           style: TextStyle(
                             fontSize: width * 0.042,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                           ),
                         ),
-                         Text(
-                      "View price details",
-                      style: TextStyle(
-                        fontSize: width * 0.032,
-                        color: const Color(0xFF543CEA),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                               
-
+                        Text(
+                          "View price details",
+                          style: TextStyle(
+                            fontSize: width * 0.032,
+                            color: const Color(0xFF543CEA),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                     Spacer(),
                     GestureDetector(
                       onTap: isAddressSufficient
                           ? () {
-                              int oldPrice = int.tryParse(
-                                      widget.product['oldPrice'].toString()) ??
-                                  0;
-                              int discount = int.tryParse(
-                                      widget.product['discount'].toString()) ??
-                                  0;
-                              int totalOldPrice = oldPrice * selectedQty;
-                              int discountAmount =
-                                  ((oldPrice * discount) ~/ 100) * selectedQty;
-                              int couponDiscount = 26 * selectedQty;
-                              int finalprice = totalOldPrice - discountAmount - couponDiscount;
-
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PaymentPage(
-                                    product: widget.product,
-                                    finalPrice: finalprice,
-                                    oldPrice: oldPrice,
-                                    discountAmount: discountAmount,
-                                    selectedQty: selectedQty,
+                                    totalAmount: totalFinalPrice,
+                                    oldPrice: totalOldPrice,
+                                    discountAmount: totalDiscountAmount,
+                                    couponDiscount: totalCouponDiscount,
                                   ),
                                 ),
                               );
